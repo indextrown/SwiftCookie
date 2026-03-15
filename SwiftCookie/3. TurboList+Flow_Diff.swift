@@ -630,6 +630,368 @@ struct DiffTestView: View {
     DiffTestView()
 }
 */
+//
+//import SwiftUI
+//import UIKit
+//import DifferenceKit
+//
+//// MARK: - TurboItem
+//
+//public struct TurboItem: Differentiable {
+//
+//    public let id: AnyHashable
+//    let view: AnyView
+//
+//    public init<V: View>(id: AnyHashable, _ view: V) {
+//        self.id = id
+//        self.view = AnyView(view)
+//    }
+//
+//    public var differenceIdentifier: AnyHashable {
+//        id
+//    }
+//
+//    public func isContentEqual(to source: TurboItem) -> Bool {
+//        id == source.id
+//    }
+//}
+//
+////
+//// MARK: - ResultBuilder
+////
+//
+//@resultBuilder
+//public struct TurboListBuilder {
+//
+//    public static func buildBlock(_ components: [TurboItem]...) -> [TurboItem] {
+//        components.flatMap { $0 }
+//    }
+//
+//    public static func buildExpression(_ expression: TurboItem) -> [TurboItem] {
+//        [expression]
+//    }
+//
+//    public static func buildExpression<V: View>(_ expression: V) -> [TurboItem] {
+//        [
+//            TurboItem(
+//                id: UUID(),
+//                expression
+//            )
+//        ]
+//    }
+//
+//    public static func buildOptional(_ component: [TurboItem]?) -> [TurboItem] {
+//        component ?? []
+//    }
+//
+//    public static func buildArray(_ components: [[TurboItem]]) -> [TurboItem] {
+//        components.flatMap { $0 }
+//    }
+//}
+//
+////
+//// MARK: - TurboList
+////
+//
+//public struct TurboList: View {
+//
+//    private let items: [TurboItem]
+//    private let spacing: CGFloat
+//
+//    public init(
+//        spacing: CGFloat = 0,
+//        @TurboListBuilder content: () -> [TurboItem]
+//    ) {
+//
+//        self.spacing = spacing
+//        self.items = content()
+//    }
+//    
+////    public init<Data, Content>(
+////        _ data: Data,
+////        spacing: CGFloat = 0,
+////        @ViewBuilder content: @escaping (Data.Element) -> Content
+////    ) where Data: RandomAccessCollection,
+////            Data.Element: Identifiable,
+////            Content: View {
+////
+////        self.spacing = spacing
+////        self.items = data.map {
+////            TurboItem(
+////                id: $0.id,
+////                content($0)
+////            )
+////        }
+////    }
+//    
+//    public init<Data, ID, Content>(
+//        _ data: Data,
+//        id: KeyPath<Data.Element, ID>,
+//        spacing: CGFloat = 0,
+//        @ViewBuilder content: @escaping (Data.Element) -> Content
+//    ) where Data: RandomAccessCollection,
+//            ID: Hashable,
+//            Content: View {
+//
+//        self.spacing = spacing
+//        self.items = data.map {
+//            TurboItem(
+//                id: $0[keyPath: id],
+//                content($0)
+//            )
+//        }
+//    }
+//
+//    public var body: some View {
+//
+//        TurboListRepresentable(
+//            spacing: spacing,
+//            items: items
+//        )
+//    }
+//}
+//
+////
+//// MARK: - UIViewRepresentable
+////
+//
+//public struct TurboListRepresentable: UIViewRepresentable {
+//
+//    let spacing: CGFloat
+//    let items: [TurboItem]
+//
+//    public func makeCoordinator() -> Coordinator {
+//        Coordinator(spacing: spacing, items: items)
+//    }
+//
+//    public func makeUIView(context: Context) -> UICollectionView {
+//
+//        let layout = UICollectionViewFlowLayout()
+//        layout.minimumLineSpacing = spacing
+//        layout.itemSize = UICollectionViewFlowLayout.automaticSize
+//        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+//
+//        let collectionView = UICollectionView(
+//            frame: .zero,
+//            collectionViewLayout: layout
+//        )
+//
+//        collectionView.dataSource = context.coordinator
+//        collectionView.delegate = context.coordinator
+//
+//        collectionView.backgroundColor = .clear
+//        collectionView.alwaysBounceVertical = true
+//        collectionView.showsVerticalScrollIndicator = false
+//
+//        collectionView.register(
+//            TurboListCell.self,
+//            forCellWithReuseIdentifier: "cell"
+//        )
+//
+//        context.coordinator.collectionView = collectionView
+//
+//        return collectionView
+//    }
+//
+//    public func updateUIView(
+//        _ uiView: UICollectionView,
+//        context: Context
+//    ) {
+//
+//        context.coordinator.apply(items: items)
+//    }
+//}
+//
+////
+//// MARK: - Coordinator
+////
+//
+//public final class Coordinator: NSObject {
+//
+//    let spacing: CGFloat
+//    var items: [TurboItem]
+//
+//    weak var collectionView: UICollectionView?
+//
+//    init(spacing: CGFloat, items: [TurboItem]) {
+//        self.spacing = spacing
+//        self.items = items
+//    }
+//
+//    func apply(items newItems: [TurboItem]) {
+//
+//        guard let collectionView else { return }
+//
+//        let changeset = StagedChangeset(
+//            source: items,
+//            target: newItems
+//        )
+//
+//        print("changeset:", changeset)
+//
+//        collectionView.reload(
+//            using: changeset,
+//            setData: { data in
+//                self.items = data
+//            }
+//        )
+//    }
+//}
+//
+////
+//// MARK: - DataSource
+////
+//
+//extension Coordinator: UICollectionViewDataSource {
+//
+//    public func collectionView(
+//        _ collectionView: UICollectionView,
+//        numberOfItemsInSection section: Int
+//    ) -> Int {
+//
+//        items.count
+//    }
+//
+//    public func collectionView(
+//        _ collectionView: UICollectionView,
+//        cellForItemAt indexPath: IndexPath
+//    ) -> UICollectionViewCell {
+//
+//        let cell = collectionView.dequeueReusableCell(
+//            withReuseIdentifier: "cell",
+//            for: indexPath
+//        )
+//
+//        let item = items[indexPath.item]
+//
+//        cell.contentConfiguration = UIHostingConfiguration {
+//
+//            item.view
+//                .frame(maxWidth: .infinity)
+//
+//        }.margins(.all, 0)
+//
+//        return cell
+//    }
+//}
+//
+////
+//// MARK: - Layout
+////
+//
+//extension Coordinator: UICollectionViewDelegateFlowLayout {
+//
+//    // 셀 간격
+//    public func collectionView(
+//        _ collectionView: UICollectionView,
+//        layout collectionViewLayout: UICollectionViewLayout,
+//        minimumLineSpacingForSectionAt section: Int
+//    ) -> CGFloat {
+//
+//        spacing
+//    }
+//}
+//
+////
+//// MARK: - Cell
+////
+//
+//final class TurboListCell: UICollectionViewCell {
+//
+//    override func preferredLayoutAttributesFitting(
+//        _ layoutAttributes: UICollectionViewLayoutAttributes
+//    ) -> UICollectionViewLayoutAttributes {
+//
+//        let attrs = super.preferredLayoutAttributesFitting(layoutAttributes)
+//
+//        if let collectionView = superview as? UICollectionView {
+//            attrs.frame.size.width = collectionView.bounds.width
+//        }
+//
+//        return attrs
+//    }
+//}
+//
+//struct Item: Identifiable {
+//    let id = UUID()
+//    let name: String
+//}
+//
+//struct ItemRowView: View {
+//
+//    let item: Item
+//
+//    var body: some View {
+//        Text(item.name)
+//            .frame(maxWidth: .infinity)
+//            .padding()
+//            .border(.red)
+//    }
+//}
+//
+//struct TurboCell: View {
+//    var number: Int
+//    
+//    var body: some View {
+//
+//            Text("\(number)")
+//                .frame(maxWidth: .infinity)
+//                .padding()
+//                .border(.red)
+//
+//    }
+//}
+//
+//struct SampleView: View {
+//
+//    @State
+//    private var items: [Item] = [
+//        Item(name: "Apple"),
+//        Item(name: "Banana"),
+//        Item(name: "Cherry")
+//    ]
+//    
+////    var body: some View {
+////        TurboList(0...2, id: \.self, spacing: 0) { idx in
+////            TurboCell(number: idx)
+////        }
+////    }
+//
+//    var body: some View {
+//
+//        VStack {
+//            
+//            TurboList(items, id: \.id, spacing: 10) { item in
+//                ItemRowView(item: item)
+//            }
+//
+//            HStack {
+//
+//                Button("Add") {
+//                    items.append(Item(name: "New Item"))
+//                }
+//
+//                Button("Remove") {
+//                    if !items.isEmpty {
+//                        items.removeLast()
+//                    }
+//                }
+//
+//                Button("Shuffle") {
+//                    items.shuffle()
+//                }
+//
+//            }
+//
+//        }
+//        .padding()
+//    }
+//}
+//
+//#Preview {
+//    SampleView()
+//}
+
 
 import SwiftUI
 import UIKit
@@ -764,7 +1126,7 @@ public struct TurboListRepresentable: UIViewRepresentable {
         Coordinator(spacing: spacing, items: items)
     }
 
-    public func makeUIView(context: Context) -> UICollectionView {
+    public func makeUIView(context: UIViewRepresentableContext<Self>) -> UICollectionView {
 
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = spacing
@@ -795,7 +1157,7 @@ public struct TurboListRepresentable: UIViewRepresentable {
 
     public func updateUIView(
         _ uiView: UICollectionView,
-        context: Context
+        context: UIViewRepresentableContext<Self>
     ) {
 
         context.coordinator.apply(items: items)
@@ -818,6 +1180,7 @@ public final class Coordinator: NSObject {
         self.items = items
     }
 
+    @MainActor
     func apply(items newItems: [TurboItem]) {
 
         guard let collectionView else { return }
@@ -829,6 +1192,7 @@ public final class Coordinator: NSObject {
 
         print("changeset:", changeset)
 
+        
         collectionView.reload(
             using: changeset,
             setData: { data in
@@ -864,12 +1228,16 @@ extension Coordinator: UICollectionViewDataSource {
 
         let item = items[indexPath.item]
 
-        cell.contentConfiguration = UIHostingConfiguration {
-
-            item.view
-                .frame(maxWidth: .infinity)
-
-        }.margins(.all, 0)
+        if #available(iOS 16.0, *) {
+            cell.contentConfiguration = UIHostingConfiguration {
+                
+                item.view
+                    .frame(maxWidth: .infinity)
+                
+            }.margins(.all, 0)
+        } else {
+            // Fallback on earlier versions
+        }
 
         return cell
     }
@@ -912,6 +1280,9 @@ final class TurboListCell: UICollectionViewCell {
     }
 }
 
+
+
+
 struct Item: Identifiable {
     let id = UUID()
     let name: String
@@ -931,7 +1302,7 @@ struct ItemRowView: View {
 
 struct TurboCell: View {
     var number: Int
-    
+
     var body: some View {
 
             Text("\(number)")
@@ -950,7 +1321,7 @@ struct SampleView: View {
         Item(name: "Banana"),
         Item(name: "Cherry")
     ]
-    
+
 //    var body: some View {
 //        TurboList(0...2, id: \.self, spacing: 0) { idx in
 //            TurboCell(number: idx)
@@ -960,7 +1331,7 @@ struct SampleView: View {
     var body: some View {
 
         VStack {
-            
+
             TurboList(items, id: \.id, spacing: 10) { item in
                 ItemRowView(item: item)
             }
@@ -991,3 +1362,4 @@ struct SampleView: View {
 #Preview {
     SampleView()
 }
+
