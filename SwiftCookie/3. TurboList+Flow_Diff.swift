@@ -707,18 +707,36 @@ public struct TurboList: View {
         self.items = content()
     }
     
-    public init<Data, Content>(
+//    public init<Data, Content>(
+//        _ data: Data,
+//        spacing: CGFloat = 0,
+//        @ViewBuilder content: @escaping (Data.Element) -> Content
+//    ) where Data: RandomAccessCollection,
+//            Data.Element: Identifiable,
+//            Content: View {
+//
+//        self.spacing = spacing
+//        self.items = data.map {
+//            TurboItem(
+//                id: $0.id,
+//                content($0)
+//            )
+//        }
+//    }
+    
+    public init<Data, ID, Content>(
         _ data: Data,
+        id: KeyPath<Data.Element, ID>,
         spacing: CGFloat = 0,
         @ViewBuilder content: @escaping (Data.Element) -> Content
     ) where Data: RandomAccessCollection,
-            Data.Element: Identifiable,
+            ID: Hashable,
             Content: View {
 
         self.spacing = spacing
         self.items = data.map {
             TurboItem(
-                id: $0.id,
+                id: $0[keyPath: id],
                 content($0)
             )
         }
@@ -863,6 +881,7 @@ extension Coordinator: UICollectionViewDataSource {
 
 extension Coordinator: UICollectionViewDelegateFlowLayout {
 
+    // 셀 간격
     public func collectionView(
         _ collectionView: UICollectionView,
         layout collectionViewLayout: UICollectionViewLayout,
@@ -910,6 +929,19 @@ struct ItemRowView: View {
     }
 }
 
+struct TurboCell: View {
+    var number: Int
+    
+    var body: some View {
+
+            Text("\(number)")
+                .frame(maxWidth: .infinity)
+                .padding()
+                .border(.red)
+
+    }
+}
+
 struct SampleView: View {
 
     @State
@@ -918,20 +950,18 @@ struct SampleView: View {
         Item(name: "Banana"),
         Item(name: "Cherry")
     ]
+    
+//    var body: some View {
+//        TurboList(0...2, id: \.self, spacing: 0) { idx in
+//            TurboCell(number: idx)
+//        }
+//    }
 
     var body: some View {
 
         VStack {
-
-//            TurboList(spacing: 20) {
-//
-//                ForEach(items) { item in
-//                    ItemRowView(item: item)
-//                }
-//
-//            }
             
-            TurboList(items, spacing: 30) { item in
+            TurboList(items, id: \.id, spacing: 10) { item in
                 ItemRowView(item: item)
             }
 
